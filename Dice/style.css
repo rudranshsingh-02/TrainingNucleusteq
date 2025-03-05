@@ -1,0 +1,111 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: #363633;
+  margin: 0;
+  padding: 0;
+  color: #EFEFEB;
+}
+
+h1 {
+  color: #EFEFEB;
+  margin-top: 20px;
+}
+
+.game-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.player-container {
+  width: 250px;
+  padding: 20px;
+  border: 2px solid #B8B8B5;
+  border-radius: 10px;
+  background-color: #EFEFEB;
+  margin: 10px;
+  text-align: center;
+  color: #363633;
+}
+
+.active {
+  border-color: #B8B8B5;
+  box-shadow: 0 0 15px #B8B8B5;
+}
+
+.dice-container {
+  padding: 20px;
+  background-color: #CCC9C1;
+  border-radius: 10px;
+  display: inline-block;
+}
+
+.dice-container img {
+  width: 100px;
+  height: 100px;
+}
+
+.buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #363633;
+}
+
+#roll-dice {
+  background-color: #B8B8B5;
+}
+
+#save-score {
+  background-color: #B8B8B5;
+}
+
+#reset-game {
+  background-color: #B8B8B5;
+}
+
+#winner-announcement {
+  font-size: 24px;
+  font-weight: bold;
+  color: #B8B8B5;
+  margin-top: 20px;
+}
+
+/* Responsive for Mobile */
+@media (max-width: 320px) {
+  .game-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .player-container {
+    width: 80%;
+  }
+
+  .dice-container img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .buttons {
+    flex-direction: column;
+  }
+
+  button {
+    width: 80%;
+  }
+}
