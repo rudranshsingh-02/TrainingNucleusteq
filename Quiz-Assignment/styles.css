@@ -1,0 +1,77 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: #E7E8D1; 
+}
+
+.container {
+  width: 50%;
+  margin: 50px auto;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  background-color: #A7BEAE; 
+}
+
+h1, h2 {
+  color: #B85042;
+}
+
+button, option{
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  background: #B85042; 
+  color: white;
+  border-radius: 5px;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #A7BEAE;
+  color: black;
+}
+
+#difficulty, #category{
+  padding: 10px;
+  margin-right: 13px;
+  border-radius: 10px;
+  background-color: #B85042;
+  color: white;
+  font-size: 16px;
+}
+
+#options {
+  display: flex;
+  flex-direction: column; 
+  gap: 10px;
+  width: 100%;
+  align-items: center; 
+}
+
+.option-button {
+  width: 80%; 
+  padding: 10px;
+  font-size: 16px;
+  text-align: center;
+  background-color: #B85042;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+.option-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+#options button:hover {
+  background: #A7BEAE;
+  color: black;
+}
