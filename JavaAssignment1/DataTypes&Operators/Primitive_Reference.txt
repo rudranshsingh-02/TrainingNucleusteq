@@ -1,0 +1,15 @@
+Storage:
+Primitive types store actual values in stack memory.
+Reference types store memory addresses (references) in stack, but the actual object is in heap memory.
+Examples:
+Primitive types include int, double, char, boolean, float, byte, short, and long.
+Reference types include String, arrays, objects, and user-defined classes.
+Mutability:
+Changing a primitive variable does not affec another variable with the same value.
+Changing a reference variable affects all variables pointing to the same object.
+Performance:
+Primitive types are faster and more memory-efficient.
+Reference types are slower due to object allocation and garbage collection.
+Usage:
+Primitive types are best for simple calculations and fast execution.
+Reference types are used for storing complex data structures and objects.
