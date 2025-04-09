@@ -2,8 +2,12 @@ package com.project.capstone.controllers;
 
 import com.project.capstone.dto.SkillUpdateRequest;
 import com.project.capstone.models.Employee;
+import com.project.capstone.models.Project;
 import com.project.capstone.repository.EmployeeRepository;
 import com.project.capstone.service.EmployeeService;
+
+import jakarta.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +25,7 @@ public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
 
-    // Get all employees (for admin usage, perhaps)
+    // Get all employee
     @GetMapping
     public List<Employee> getAllEmployees() {
         return employeeRepository.findAll();
@@ -32,15 +36,27 @@ public class EmployeeController {
     public Optional<Employee> getEmployeeById(@PathVariable Long id) {
         return employeeRepository.findById(id);
     }
-    
-    // Update skills endpoint
+
+    @GetMapping("/projects")
+    public ResponseEntity<List<Project>> getEmployeeProjects(HttpSession session) {
+        Employee employee = (Employee) session.getAttribute("employee");
+
+        if (employee == null) {
+            return ResponseEntity.status(401).build(); 
+        }
+        Employee freshEmployee = employeeRepository.findById(employee.getId())
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        List<Project> assignedProjects = freshEmployee.getAssignedProjects();
+        return ResponseEntity.ok(assignedProjects);
+    }
+
     @PutMapping("/update-skills")
     public ResponseEntity<String> updateSkills(@RequestBody SkillUpdateRequest request) {
         employeeService.updateEmployeeSkills(request.getEmployeeId(), request.getSkills());
         return ResponseEntity.ok("Skills updated successfully");
     }
     
-    // Add skill endpoint
     @PostMapping("/{employeeId}/add-skill")
     public ResponseEntity<String> addSkill(@PathVariable Long employeeId, @RequestBody Map<String, String> request) {
         String newSkill = request.get("skill");
@@ -50,8 +66,6 @@ public class EmployeeController {
         employeeService.addEmployeeSkill(employeeId, newSkill.trim());
         return ResponseEntity.ok("Skill added successfully");
     }
-    
-    // Delete employee
     @DeleteMapping("/{id}")
     public void deleteEmployee(@PathVariable Long id) {
         employeeRepository.deleteById(id);
