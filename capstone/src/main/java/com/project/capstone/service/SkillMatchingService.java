@@ -32,8 +32,9 @@ public class SkillMatchingService {
 
     private boolean matchesSkills(String employeeSkills,String projectSkills)
     {
-        String[] empSkillsArray=employeeSkills.toLowerCase().split(", ");
-        String[] projSkillsArray=projectSkills.toLowerCase().split(", ");
+        String[] empSkillsArray = employeeSkills.toLowerCase().split("\\s*,\\s*"); 
+String[] projSkillsArray = projectSkills.toLowerCase().split("\\s*,\\s*");
+
         for(String skill:projSkillsArray)
         {
             if(List.of(empSkillsArray).contains(skill))
