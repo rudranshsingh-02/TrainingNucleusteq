@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Portal - Login</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <h1>HR Portal</h1>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Enter Email:</label>
+                <input type="email" id="email" required placeholder="hr123@nucleusteq.com">
+            </div>
+            <div class="form-group">
+                <label for="password">Enter Password:</label>
+                <input type="password" id="password" required placeholder="rudranshsingh">
+            </div>
+            <button type="submit" class="btn-login">Login</button>
+        </form>
+        <p id="loginError" class="error-message"></p>
+    </div>
+    <script src="../js/auth.js"></script>
+</body>
+</html>
