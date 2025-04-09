@@ -1,18 +1,23 @@
 package com.project.capstone.models;
+
 import jakarta.persistence.*;
 import java.time.LocalDate;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "leave_requests")
 
 public class LeaveRequest {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "employee_id",nullable = false)
+    @JoinColumn(name = "employee_id", nullable = false)
+    @JsonIgnoreProperties({ "leaveRequests", "password", "role" })
     private Employee employee;
 
     @Column(nullable = false)
@@ -25,52 +30,47 @@ public class LeaveRequest {
     @Enumerated(EnumType.STRING)
     private LeaveStatus status;
 
-    public LeaveRequest()
-    {
-        this.status=LeaveStatus.PENDING;
-    }
-    public Long getId() 
-    { 
-        return id; 
-    }
-    public void setId(Long id) 
-    { 
-        this.id = id; 
+    public LeaveRequest() {
+        this.status = LeaveStatus.PENDING;
     }
 
-    public Employee getEmployee() 
-    { 
-        return employee; 
-    }
-    public void setEmployee(Employee employee) 
-    { 
-        this.employee = employee; 
+    public Long getId() {
+        return id;
     }
 
-    public LocalDate getStartDate() 
-    { 
-        return startDate; 
-    }
-    public void setStartDate(LocalDate startDate) 
-    { 
-        this.startDate = startDate; 
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public LocalDate getEndDate() 
-    { 
-        return endDate; 
-    }
-    public void setEndDate(LocalDate endDate) 
-    { 
-        this.endDate = endDate; 
+    public Employee getEmployee() {
+        return employee;
     }
 
-    public LeaveStatus getStatus() 
-    { 
-        return status; 
+    public void setEmployee(Employee employee) {
+        this.employee = employee;
     }
-    public void setStatus(LeaveStatus status) 
-    { 
-        this.status = status; 
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    public LeaveStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(LeaveStatus status) {
+        this.status = status;
     }
 }
