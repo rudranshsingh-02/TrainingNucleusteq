@@ -1,86 +1,80 @@
-<!-- admin.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Portal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* admin.css */
-        .dashboard-section {
-            display: none;
-            padding: 20px;
-        }
-        .active-section {
-            display: block;
-        }
-        .action-btn {
-            cursor: pointer;
-            margin: 0 5px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    .dashboard-section {
+      display: none;
+    }
+    .active-section {
+      display: block;
+    }
+  </style>
 </head>
-<body class="bg-gray-100">
-    <nav class="bg-blue-600 text-white p-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold">Admin Portal</h1>
-            <div class="space-x-4">
-                <button onclick="showSection('projects')" class="hover:text-blue-200">Projects</button>
-                <button onclick="toggleProjectForm()" class="hover:text-blue-200">
-                    Add New Project
-                </button>
-                <button onclick="showSection('employees')" class="hover:text-blue-200">Employees</button>
-                <button onclick="showSection('leaves')" class="hover:text-blue-200">Leave Requests</button>
-                <button onclick="logout()" class="hover:text-red-300">Logout</button>
-            </div>
-        </div>
+<body class="bg-[#1e2a38] text-white">
+  <div class="container">
+    <nav class="sidebar w-64 bg-[#0f172a] text-white p-6 flex flex-col space-y-4 shadow-md items-center">
+      <h1 class="text-2xl font-bold mb-0 text-center">Admin Portal</h1>
+      <div class="mb-4">
+        <p id="adminInfo" class="font-semibold text-lg text-white hover:text-[#93c5fd] transition-colors duration-200">
+        </p>
+      </div>
+      <button onclick="showSection('projects')" class="hover:text-[#93c5fd] text-left">Projects</button>
+      <button onclick="toggleProjectForm()" class="hover:text-[#93c5fd] text-left">Add New Project</button>
+      <button onclick="showSection('employees')" class="hover:text-[#93c5fd] text-left">Employees</button>
+      <button onclick="showSection('leaves')" class="hover:text-[#93c5fd] text-left">Leave Requests</button>
+      <button onclick="logout()" class="hover:text-red-400 text-left mt-auto">Logout</button>
     </nav>
 
-    <div class="container mx-auto p-4">
-        <!-- Projects Section -->
-        <div id="projects" class="dashboard-section">
-            <h2 class="text-2xl font-bold mb-4">All Projects</h2>
-            <div id="projectsList"></div>
-        </div>
-        <div id="addProjectForm" class="hidden bg-white p-4 rounded-lg shadow mb-4">
-            <h3 class="text-lg font-bold mb-2">Add New Project</h3>
-            <form onsubmit="addProject(event)">
-                <input type="text" id="projectName" placeholder="Project Name" required 
-                       class="w-full p-2 border rounded mb-2">
-                <textarea id="projectDesc" placeholder="Description" 
-                       class="w-full p-2 border rounded mb-2"></textarea>
-                <input type="text" id="projectSkills" placeholder="Required Skills (comma separated)" 
-                       class="w-full p-2 border rounded mb-2">
-                <input type="number" id="projectDuration" placeholder="Estimated Duration (days)" 
-                       class="w-full p-2 border rounded mb-2">
-                <div class="flex gap-2">
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Add Project</button>
-                    <button type="button" onclick="toggleProjectForm()" 
-                            class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
-                </div>
-            </form>
-        </div>
+    <div class="content flex-grow p-6 overflow-y-auto bg-[#1e2a38]">
+      <div id="projects" class="dashboard-section">
+        <h2 class="text-2xl font-bold mb-4">All Projects</h2>
+        <div id="projectsList"></div>
+      </div>
 
-        <!-- Employees Section -->
-        <div id="employees" class="dashboard-section">
-            <h2 class="text-2xl font-bold mb-4">All Employees</h2>
-            <div id="employeesList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-        </div>
+      <div id="addProjectForm" class="hidden bg-[#2c3e50] p-4 rounded-lg shadow mb-6">
+        <h3 class="text-lg font-semibold mb-4">Add New Project</h3>
+        <form onsubmit="addProject(event)">
+          <input type="text" id="projectName" placeholder="Project Name" required
+            class="w-full p-2 rounded bg-[#34495e] border border-[#3d566e] text-white mb-3" />
+          <textarea id="projectDesc" placeholder="Description"
+            class="w-full p-2 rounded bg-[#34495e] border border-[#3d566e] text-white mb-3"></textarea>
+          <input type="text" id="projectSkills" placeholder="Required Skills (comma separated)"
+            class="w-full p-2 rounded bg-[#34495e] border border-[#3d566e] text-white mb-3" />
+          <input type="number" id="projectDuration" placeholder="Estimated Duration (days)"
+            class="w-full p-2 rounded bg-[#34495e] border border-[#3d566e] text-white mb-3" />
+          <div class="flex gap-2">
+            <button type="submit" class="bg-[#00bcd4] hover:bg-[#00acc1] px-4 py-2 rounded text-white">Add Project</button>
+            <button type="button" onclick="toggleProjectForm()" class="bg-gray-600 px-4 py-2 rounded text-white hover:bg-gray-700">Cancel</button>
+          </div>
+        </form>
+      </div>
 
-        <!-- Leave Requests Section -->
-        <div id="leaves" class="dashboard-section">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">Leave Requests</h2>
-                <div class="w-64">
-                    <input type="text" id="searchEmail" placeholder="Search by employee email" 
-                           class="w-full p-2 border rounded" onkeyup="searchLeaves()">
-                </div>
-            </div>
-            <div id="leavesList"></div>
+      <div id="employees" class="dashboard-section">
+        <h2 class="text-2xl font-bold mb-4">All Employees</h2>
+        <div id="employeesList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+
+      <div id="leaves" class="dashboard-section">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-bold">Leave Requests</h2>
+          <div class="w-72">
+            <input type="text" id="searchEmail" placeholder="Search by employee email"
+              class="w-full p-2 rounded bg-[#34495e] border border-[#3d566e] text-white" onkeyup="searchLeaves()" />
+          </div>
         </div>
+        <div id="leavesList"></div>
+      </div>
     </div>
+  </div>
 
-    <script src="/js/admin.js"></script>
+  <script src="/js/admin.js"></script>
 </body>
 </html>
