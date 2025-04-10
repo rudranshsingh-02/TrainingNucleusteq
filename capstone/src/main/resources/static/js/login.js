@@ -1,7 +1,6 @@
 document.getElementById('loginForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
-    // Get role selection from radio buttons or dropdown
     const role = document.querySelector('input[name="role"]:checked')?.value;
 
     if (!role) {
@@ -12,7 +11,7 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
     const loginData = {
         email: document.getElementById('email').value,
         password: document.getElementById('password').value,
-        role: role // Include role in the request
+        role: role 
     };
 
     fetch('/auth/login', {
