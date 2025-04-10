@@ -6,53 +6,31 @@
     <title>Register</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="flex items-center justify-center min-h-screen bg-gray-100">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 class="text-2xl font-bold text-center text-gray-800">Register</h2>
-        <form id="registerForm" class="mt-4">
-            <label class="block text-sm font-medium text-gray-700">Name</label>
-            <input type="text" id="name" class="w-full p-2 border rounded mt-1" required>
+<body class="flex items-center justify-center min-h-screen bg-[#1e2a38]">
+    <div class="bg-[#2c3e50] p-8 rounded-lg shadow-xl w-96 text-white">
+        <h2 class="text-2xl font-semibold text-center">Register</h2>
+        <form id="registerForm" class="mt-6">
+            <label class="block text-sm font-medium">Name</label>
+            <input type="text" id="name" class="w-full p-2 mt-1 rounded bg-[#34495e] border border-[#3d566e] text-white" required>
 
-            <label class="block mt-3 text-sm font-medium text-gray-700">Email</label>
-            <input type="email" id="email" class="w-full p-2 border rounded mt-1" required>
+            <label class="block mt-4 text-sm font-medium">Email</label>
+            <input type="email" id="email" class="w-full p-2 mt-1 rounded bg-[#34495e] border border-[#3d566e] text-white" required>
 
-            <label class="block mt-3 text-sm font-medium text-gray-700">Password</label>
-            <input type="password" id="password" class="w-full p-2 border rounded mt-1" required>
+            <label class="block mt-4 text-sm font-medium">Password</label>
+            <input type="password" id="password" class="w-full p-2 mt-1 rounded bg-[#34495e] border border-[#3d566e] text-white" required>
 
-            <input type="hidden" id="role" value="employee"> 
+            <input type="hidden" id="role" value="employee">
 
-            <button type="submit" class="mt-4 w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
+            <button type="submit" class="mt-6 w-full bg-[#00bcd4] text-white p-2 rounded hover:bg-[#00acc1] transition">
                 Register
             </button>
         </form>
 
-        <p class="mt-3 text-sm text-center">
-            Already have an account? <a href="index.html" class="text-blue-600">Login here</a>
+        <p class="mt-4 text-sm text-center text-gray-300">
+            Already have an account? <a href="index.html" class="text-[#00bcd4] hover:underline">Login here</a>
         </p>
     </div>
 
-    <script>
-        document.getElementById('registerForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            const userData = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value,
-                role: "employee"
-            };
-
-            fetch('/auth/register',{
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData)
-            })
-            .then(response => response.text())  // ✅ Convert response to text
-            .then(data => {
-                alert(data); // Show the response message (e.g., "User registered successfully")
-            })
-            .catch(error => console.error('Error:', error));
-        });
-    </script>
+    <script src="js/register.js"></script>
 </body>
 </html>
