@@ -1,501 +1,482 @@
-
 // admin.js
 let currentProjectId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-    checkAdminSession();
-    showSection('projects');
+  checkAdminSession();
+  showSection("projects");
 });
 
 async function checkAdminSession() {
-    try {
-        const response = await fetch("/auth/current", { credentials: "include" });
-        if (!response.ok) throw new Error("Not authenticated");
-        const user = await response.json();
-        if (user.role !== "admin") throw new Error("Unauthorized access");
-    } catch (error) {
-        alert("Admin access required");
-        window.location.href = "index.html";
-    }
+  try {
+    const response = await fetch("/auth/current", { credentials: "include" });
+    if (!response.ok) throw new Error("Not authenticated");
+    const user = await response.json();
+    sessionStorage.setItem("userName", user.name);
+    sessionStorage.setItem("userEmail", user.email);
+    document.getElementById(
+      "adminInfo"
+    ).textContent = `${user.name}(${user.role})`;
+    if (user.role !== "admin") throw new Error("Unauthorized access");
+  } catch (error) {
+    alert("Admin access required");
+    window.location.href = "index.html";
+  }
 }
 
 function showSection(sectionId) {
-    document.querySelectorAll('.dashboard-section').forEach(sec => {
-        sec.classList.remove('active-section');
-    });
-    document.getElementById(sectionId).classList.add('active-section');
-    
-    switch(sectionId) {
-        case 'projects': loadProjects(); break;
-        case 'employees': loadEmployees(); break;
-        case 'leaves': loadLeaves(); break;
-    }
+  document.querySelectorAll(".dashboard-section").forEach((sec) => {
+    sec.style.display = "none"; // Hide each section
+  });
+
+  document.getElementById("addProjectForm").classList.add("hidden");
+
+  // Show the selected section
+  document.getElementById(sectionId).style.display = "block";
+  switch (sectionId) {
+    case "projects":
+      loadProjects();
+      break;
+    case "employees":
+      loadEmployees();
+      break;
+    case "leaves":
+      loadLeaves();
+      break;
+  }
 }
 
 // Projects Management
 async function loadProjects() {
-    try {
-        const response = await fetch("/projects", { credentials: "include" });
-        const projects = await response.json();
-        const container = document.getElementById("projectsList");
-        container.innerHTML = "";
+  try {
+    const response = await fetch("/projects", { credentials: "include" });
+    const projects = await response.json();
+    const container = document.getElementById("projectsList");
+    container.innerHTML = "";
 
-        projects.forEach(project => {
-            const projectDiv = document.createElement("div");
-            projectDiv.className = "bg-white p-4 rounded-lg shadow mb-4";
-            projectDiv.innerHTML = `
-                <h3 class="text-xl font-bold">${project.name}</h3>
-                <p class="text-gray-600 mb-2">${project.description}</p>
-                <p class="text-sm"><strong>Required Skills:</strong> ${project.requiredSkills}</p>
-                <button onclick="showSuggestedEmployees('${project.id}')" 
-                        class="mt-2 text-blue-500 hover:text-blue-700">
-                    Show Suggested Employees
-                </button>
-                <div id="suggestions-${project.id}" class="mt-2"></div>
-            `;
-            container.appendChild(projectDiv);
-        });
-    } catch (error) {
-        console.error("Error loading projects:", error);
-    }
+    projects.forEach((project) => {
+      const projectDiv = document.createElement("div");
+      projectDiv.className =
+        "bg-[#2c3e50] p-4 rounded-lg shadow mb-4 text-white";
+      projectDiv.innerHTML = `
+        <h3 class="text-xl font-bold text-white">${project.name}</h3>
+        <p class="text-gray-300 mb-2">${project.description}</p>
+        <p class="text-sm text-gray-400"><strong>Required Skills:</strong> ${project.requiredSkills}</p>
+        <button id="toggle-suggestions-${project.id}" 
+        onclick="showSuggestedEmployees('${project.id}')" 
+        class="mt-3 text-cyan-400 hover:text-cyan-300 underline">
+    Show Suggested Employees
+</button>
+<div id="suggestions-${project.id}" class="mt-3" style="display: none;"></div>
+
+      `;
+      container.appendChild(projectDiv);
+    });
+  } catch (error) {
+    console.error("Error loading projects:", error);
+  }
 }
 
 // Add project functionality
 function toggleProjectForm() {
-    const form = document.getElementById('addProjectForm');
-    form.classList.toggle('hidden');
+  const addProjectForm = document.getElementById("addProjectForm");
+
+  if (addProjectForm.classList.contains("hidden")) {
+    // Hide all sections before showing the form
+    document.querySelectorAll(".dashboard-section").forEach((section) => {
+      section.style.display = "none";
+    });
+
+    addProjectForm.classList.remove("hidden"); // Show form
+  } else {
+    showSection("projects"); // Return to projects section
+  }
 }
 
 async function addProject(event) {
-    event.preventDefault();
-    try {
-        const projectData = {
-            name: document.getElementById('projectName').value,
-            description: document.getElementById('projectDesc').value,
-            requiredSkills: document.getElementById('projectSkills').value.split(',').map(s => s.trim()).join(','),  // Convert to CSV format
-            estimatedDuration: parseInt(document.getElementById('projectDuration').value) || 0,
-            isCompleted: false 
-        };        
+  event.preventDefault();
+  try {
+    const projectData = {
+      name: document.getElementById("projectName").value,
+      description: document.getElementById("projectDesc").value,
+      requiredSkills: document
+        .getElementById("projectSkills")
+        .value.split(",")
+        .map((s) => s.trim())
+        .join(","), // Convert to CSV format
+      estimatedDuration:
+        parseInt(document.getElementById("projectDuration").value) || 0,
+      isCompleted: false,
+    };
 
-        const response = await fetch('/projects', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(projectData),
-            credentials: 'include'
-        });
+    const response = await fetch("/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(projectData),
+      credentials: "include",
+    });
 
-        if (!response.ok) throw new Error('Failed to add project');
-        
-        showNotification('Project added successfully');
-        toggleProjectForm();
-        loadProjects();
-    } catch (error) {
-        console.error('Add project error:', error);
-        showNotification(error.message || 'Failed to add project');
-    }
+    if (!response.ok) throw new Error("Failed to add project");
+
+    showNotification("Project added successfully");
+    toggleProjectForm();
+    loadProjects();
+  } catch (error) {
+    console.error("Add project error:", error);
+    showNotification(error.message || "Failed to add project");
+  }
 }
 
 async function showSuggestedEmployees(projectId) {
-    currentProjectId = projectId;
-    try {
-        // Fetch suggestions and leave data in parallel
-        const [suggestionsResponse, leavesResponse] = await Promise.all([
-            fetch(`/match/${projectId}`, { credentials: "include" }),
-            fetch("/leaves", { credentials: "include" })
-        ]);
+  const containerId = `suggestions-${projectId}`;
+  const buttonId = `toggle-suggestions-${projectId}`;
+  const container = document.getElementById(containerId);
+  const button = document.getElementById(buttonId);
 
-        // ✅ Check if responses are OK before parsing JSON
-        if (!suggestionsResponse.ok || !leavesResponse.ok) {
-            throw new Error("Failed to fetch data");
-        }
+  // Toggle: If already visible, hide and update button text
+  if (container && container.style.display === "block") {
+    container.style.display = "none";
+    if (button) button.textContent = "Show Suggested Employees";
+    return;
+  }
 
-        const suggestions = await suggestionsResponse.json();
-        const allLeaves = await leavesResponse.json();
+  // Set display block & update button
+  if (container) {
+    container.style.display = "block";
+  }
+  if (button) button.textContent = "Hide Suggested Employees";
 
-        // ✅ Filter only APPROVED leaves
-        const approvedLeaves = allLeaves.filter(leave => leave.status === "APPROVED");
-        const onLeaveIds = approvedLeaves.map(leave => leave.employee?.id); // Ensure employee exists
+  try {
+    const [suggestionsResponse, leavesResponse] = await Promise.all([
+      fetch(`/match/${projectId}`, { credentials: "include" }),
+      fetch("/leaves", { credentials: "include" }),
+    ]);
 
-        // ✅ Remove employees who are on leave
-        const filteredSuggestions = suggestions.filter(employee => 
-            employee.id && !onLeaveIds.includes(employee.id) // Ensure employee has ID
-        );
-
-        // ✅ Ensure container exists
-        const container = document.getElementById(`suggestions-${projectId}`);
-        if (!container) {
-            console.error(`Error: Container "suggestions-${projectId}" not found.`);
-            return;
-        }
-
-        // ✅ Clear previous content
-        container.innerHTML = filteredSuggestions.length > 0 ? 
-            "<h4 class='font-bold mt-4'>Suggested Employees:</h4>" : 
-            "<p>No available employees matching skills</p>";
-    
-        console.log("Suggestions API Response:", suggestions);
-
-        // ✅ Display employees
-        filteredSuggestions.forEach(employee => {
-            const div = document.createElement("div");
-            div.className = "flex items-center justify-between bg-gray-50 p-2 rounded mt-2";
-            div.innerHTML = `
-                <div>
-                    <span class="font-medium">${employee.name}</span>
-                    <span class="text-gray-600 text-sm">${employee.email}</span>
-                </div>
-                <div>
-                    <span class="action-btn text-green-500" 
-                          onclick="assignEmployee('${employee.id}')">✓</span>
-                    <span class="action-btn text-red-500" 
-                          onclick="removeEmployee('${employee.id}')">✗</span>
-                </div>
-            `;
-            container.appendChild(div);
-        });
-    } catch (error) {
-        console.error("Error loading suggestions:", error);
+    if (!suggestionsResponse.ok || !leavesResponse.ok) {
+      throw new Error("Failed to fetch data");
     }
+
+    const suggestions = await suggestionsResponse.json();
+    const allLeaves = await leavesResponse.json();
+
+    const approvedLeaves = allLeaves.filter((leave) => leave.status === "APPROVED");
+    const onLeaveIds = approvedLeaves.map((leave) => leave.employee?.id);
+    const filteredSuggestions = suggestions.filter(
+      (employee) => employee.id && !onLeaveIds.includes(employee.id)
+    );
+
+    container.innerHTML = "";
+
+    if (filteredSuggestions.length > 0) {
+      const title = document.createElement("h4");
+      title.className = "font-bold mt-4 text-white";
+      title.textContent = "Suggested Employees:";
+      container.appendChild(title);
+    } else {
+      const noEmployeesMsg = document.createElement("p");
+      noEmployeesMsg.className = "text-gray-300 mt-2";
+      noEmployeesMsg.textContent = "No available employees matching skills";
+      container.appendChild(noEmployeesMsg);
+    }
+
+    filteredSuggestions.forEach((employee) => {
+      const div = document.createElement("div");
+      div.className = "flex items-center justify-between bg-[#374151] p-3 rounded mt-3 text-white";
+      div.id = `employee-${employee.id}`;
+
+      const assigned = employee.assignedToProject;
+
+      div.innerHTML = `
+        <div class="flex-col">
+          <span class="font-semibold">${employee.name}</span>
+          <div class="text-gray-300 text-sm">${employee.email}</div>
+          <div class="text-sm mt-1 text-gray-400">
+            Skills: ${
+              Array.isArray(employee.skills)
+                ? employee.skills.join(", ")
+                : employee.skills || "No skills listed"
+            }
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          ${
+            assigned
+              ? `<span class="text-gray-400">Assigned</span>
+                 <button class="text-white px-2 py-1 rounded bg-red-500 hover:bg-red-600"
+                   onclick="removeEmployee('${projectId}', '${employee.id}')">
+                   Remove
+                 </button>`
+              : `<button class="text-white px-2 py-1 rounded bg-green-600 hover:bg-green-700"
+                   onclick="assignEmployee('${projectId}', '${employee.id}')">
+                   Assign
+                 </button>
+                 <button class="text-white px-2 py-1 rounded bg-red-600 hover:bg-red-700"
+                   onclick="removeEmployee('${projectId}', '${employee.id}')">
+                   Reject
+                 </button>`
+          }
+        </div>
+      `;
+
+      container.appendChild(div);
+    });
+  } catch (error) {
+    console.error("Error loading suggestions:", error);
+    container.innerHTML = '<p class="text-red-500">Failed to load suggestions.</p>';
+  }
 }
 
-// async function showSuggestedEmployees(projectId) {
-//     async function showSuggestedEmployees(projectId) {
-//         // Fetch suggested employees
-//         console.log("Fetching employees for project:", projectId);
-    
-//         // Make sure filteredSuggestions has data
-//         console.log("Filtered Suggestions:", filteredSuggestions);
-    
-//         filteredSuggestions.forEach(employee => {
-//             console.log("Employee:", employee);  // Check each employee
-    
-//             const div = document.createElement("div");
-//             div.innerHTML = `
-//                 <div class="flex-1">
-//                     <div class="font-medium">${employee.name}</div>
-//                     <div class="text-gray-600 text-sm">${employee.email}</div>
-//                     <div class="text-xs mt-1 text-gray-500">
-//                         Skills: ${Array.isArray(employee.skills) ? 
-//                             employee.skills.join(', ') : 
-//                             employee.skills}
-//                     </div>
-//                 </div>
-//             `;
-//             container.appendChild(div);
-//         });
-//     }
-    
 
 let notificationTimeout;
 
 function showNotification(message) {
-    const notification = document.createElement("div");
-    notification.className = "fixed top-4 right-4 bg-green-100 text-green-800 px-4 py-2 rounded";
-    notification.textContent = message;
-    document.body.appendChild(notification);
+  const notification = document.createElement("div");
+  notification.className =
+    "fixed top-4 right-4 bg-green-100 text-green-800 px-4 py-2 rounded";
+  notification.textContent = message;
+  document.body.appendChild(notification);
 
-    notificationTimeout = setTimeout(() => {
-        notification.remove();
-    }, 2000);
+  notificationTimeout = setTimeout(() => {
+    notification.remove();
+  }, 2000);
 }
 
-// async function assignEmployee(employeeId) {
-//     try {
-//         await fetch(`/match/${currentProjectId}/assign/${employeeId}`, {
-//             method: "POST",
-//             credentials: "include"
-//         });
-//         showSuggestedEmployees(currentProjectId);
-//         loadProjects();
-//     } catch (error) {
-//         console.error("Assignment error:", error);
-//     }
-// }
-// async function assignEmployee(employeeId, employeeName) {
-//     try {
-//         await fetch(`/match/${currentProjectId}/assign/${employeeId}`, {
-//             method: "POST",
-//             credentials: "include"
-//         });
-        
-//         // Remove from list immediately
-//         const container = document.getElementById(`suggestions-${currentProjectId}`);
-//         const employeeDiv = container.querySelector(`[onclick*="${employeeId}"]`);
-//         if (employeeDiv) employeeDiv.parentElement.parentElement.remove();
-        
-//         showNotification(`${employeeName} assigned to project`);
-//         loadProjects();
-//     } catch (error) {
-//         console.error("Assignment error:", error);
-//         showNotification(`Error assigning ${employeeName}`);
-//     }
-// }
+async function assignEmployee(projectId, employeeId) {
+  try {
+    const response = await fetch(`/assign/${projectId}/${employeeId}`, {
+      method: "POST",
+      credentials: "include",
+    });
 
-// async function removeEmployee(employeeId) {
-//     try {
-//         await fetch(`/match/${currentProjectId}/remove/${employeeId}`, {
-//             method: "POST",
-//             credentials: "include"
-//         });
-//         showSuggestedEmployees(currentProjectId);
-//         loadProjects();
-//     } catch (error) {
-//         console.error("Removal error:", error);
-//     }
-// }
-// async function removeEmployee(employeeId, employeeName) {
-//     try {
-//         await fetch(`/match/${currentProjectId}/remove/${employeeId}`, {
-//             method: "POST",
-//             credentials: "include"
-//         });
-        
-//         // Remove from list immediately
-//         const container = document.getElementById(`suggestions-${currentProjectId}`);
-//         const employeeDiv = container.querySelector(`[onclick*="${employeeId}"]`);
-//         if (employeeDiv) employeeDiv.parentElement.parentElement.remove();
-        
-//         showNotification(`${employeeName} removed from project`);
-//         loadProjects();
-//     } catch (error) {
-//         console.error("Removal error:", error);
-//         showNotification(`Error removing ${employeeName}`);
-//     }
-// }
-async function assignEmployee(employeeId, employeeName) {
-    try {
-        // ... existing API call ...
-        
-        // Immediate removal
-        const employeeDiv = document.querySelector(`[onclick*="assignEmployee('${employeeId}'"]`).closest('div');
-        if (employeeDiv) employeeDiv.remove();
-        
-        showNotification(`${employeeName} assigned successfully`);
-    } catch (error) {
-        // ... error handling ...
+    if (!response.ok) throw new Error("Failed to assign employee");
+
+    // Update UI dynamically
+    const employeeDiv = document.getElementById(`employee-${employeeId}`);
+    if (employeeDiv) {
+      const assignBtn = employeeDiv.querySelector(".assign-btn");
+      const rejectBtn = employeeDiv.querySelector(".reject-btn");
+      assignBtn.textContent = "Assigned";
+      assignBtn.classList.remove("bg-green-500");
+      assignBtn.classList.add("bg-gray-400", "cursor-not-allowed");
+      assignBtn.disabled = true;
+
+      rejectBtn.textContent = "Remove"; // Change Reject to Remove
     }
+
+    console.log(`Employee ${employeeId} assigned to project ${projectId}`);
+  } catch (error) {
+    console.error("Error assigning employee:", error);
+  }
 }
 
-async function removeEmployee(employeeId, employeeName) {
-    try {
-        // ... existing API call ...
-        
-        // Immediate removal
-        const employeeDiv = document.querySelector(`[onclick*="removeEmployee('${employeeId}'"]`).closest('div');
-        if (employeeDiv) employeeDiv.remove();
-        
-        showNotification(`${employeeName} removed from suggestions`);
-    } catch (error) {
-        // ... error handling ...
+async function removeEmployee(projectId, employeeId) {
+  try {
+    const response = await fetch(`/unassign/${projectId}/${employeeId}`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (!response.ok) throw new Error("Failed to remove employee");
+
+    // Update UI dynamically
+    const employeeDiv = document.getElementById(`employee-${employeeId}`);
+    if (employeeDiv) {
+      const assignBtn = employeeDiv.querySelector(".assign-btn");
+      const rejectBtn = employeeDiv.querySelector(".reject-btn");
+      assignBtn.textContent = "Assign";
+      assignBtn.classList.remove("bg-gray-400", "cursor-not-allowed");
+      assignBtn.classList.add("bg-green-500");
+      assignBtn.disabled = false;
+
+      rejectBtn.textContent = "Reject"; // Change Remove back to Reject
     }
+
+    console.log(`Employee ${employeeId} removed from project ${projectId}`);
+  } catch (error) {
+    console.error("Error removing employee:", error);
+  }
 }
+
 // Employees Management
 async function loadEmployees() {
-    try {
-        const response = await fetch("/employees", { credentials: "include" });
-        const employees = await response.json();
-        const container = document.getElementById("employeesList");
-        container.innerHTML = "";
+  try {
+    const response = await fetch("/employees", { credentials: "include" });
+    const employees = await response.json();
+    const container = document.getElementById("employeesList");
+    container.innerHTML = "";
 
-        employees.forEach(employee => {
-            const div = document.createElement("div");
-            div.className = "bg-white p-4 rounded-lg shadow";
-            div.innerHTML = `
-                <h3 class="font-bold">${employee.name}</h3>
-                <p class="text-gray-600">${employee.email}</p>
-                <p class="text-sm mt-2"><strong>Skills:</strong> ${employee.skills}</p>
-            `;
-            container.appendChild(div);
-        });
-    } catch (error) {
-        console.error("Error loading employees:", error);
-    }
+    employees.forEach((employee) => {
+      const div = document.createElement("div");
+      div.className = "bg-[#2c3e50] p-4 rounded-lg shadow text-white";
+      div.innerHTML = `
+        <h3 class="font-bold text-lg">${employee.name}</h3>
+        <p class="text-gray-300">${employee.email}</p>
+        <p class="text-sm mt-2 text-gray-400">
+            <strong>Skills:</strong> ${
+              Array.isArray(employee.skills)
+                ? employee.skills.join(", ")
+                : employee.skills || "None"
+            }
+        </p>
+      `;
+      container.appendChild(div);
+    });
+  } catch (error) {
+    console.error("Error loading employees:", error);
+  }
 }
-
-// async function loadEmployees() {
-//     try {
-//         const response = await fetch("/employees", { credentials: "include" });
-//         const employees = await response.json();
-//         const container = document.getElementById("employeesList");
-//         container.innerHTML = "";
-
-//         employees.forEach(employee => {
-//             const div = document.createElement("div");
-//             div.className = "bg-white p-4 rounded-lg shadow cursor-pointer hover:bg-gray-50";
-//             div.innerHTML = `
-//                 <div class="flex justify-between items-center">
-//                     <div>
-//                         <h3 class="font-bold">${employee.name}</h3>
-//                         <p class="text-gray-600">${employee.email}</p>
-//                         <p class="text-sm mt-2"><strong>Skills:</strong> ${employee.skills}</p>
-//                     </div>
-//                     <div class="flex gap-2">
-//                         <button onclick="event.stopPropagation(); handleUpgrade('${employee.email}')" 
-//                                 class="text-blue-500 hover:text-blue-700 text-sm">
-//                             Make Admin
-//                         </button>
-//                         <button onclick="event.stopPropagation(); handleDelete('${employee.id}', '${employee.name}')" 
-//                                 class="text-red-500 hover:text-red-700 text-sm">
-//                             Delete
-//                         </button>
-//                     </div>
-//                 </div>
-//             `;
-//             container.appendChild(div);
-//         });
-//     } catch (error) {
-//         console.error("Error loading employees:", error);
-//     }
-// }
-
-
 
 async function handleUpgrade(email) {
-    if (!confirm(`Make this user an admin?`)) return;
-    
-    try {
-        const response = await fetch(`/auth/upgrade/${email}`, {
-            method: "PUT",
-            credentials: "include"
-        });
-        
-        if (!response.ok) throw new Error("Upgrade failed");
-        showNotification(`User upgraded to admin successfully`);
-        loadEmployees();
-    } catch (error) {
-        console.error("Upgrade error:", error);
-        showNotification(`Error upgrading user`);
-    }
+  if (!confirm(`Make this user an admin?`)) return;
+
+  try {
+    const response = await fetch(`/auth/upgrade/${email}`, {
+      method: "PUT",
+      credentials: "include",
+    });
+
+    if (!response.ok) throw new Error("Upgrade failed");
+    showNotification(`User upgraded to admin successfully`);
+    loadEmployees();
+  } catch (error) {
+    console.error("Upgrade error:", error);
+    showNotification(`Error upgrading user`);
+  }
 }
-// Leave Management
-// async function loadLeaves() {
-//     try {
-//         const response = await fetch("/leaves", { credentials: "include" });
-//         const leaves = await response.json();
-//         renderLeaves(leaves);
-//     } catch (error) {
-//         console.error("Error loading leaves:", error);
-//     }
-// }
+
 async function loadLeaves() {
-    try {
-        const response = await fetch("/leaves", { credentials: "include" });
-        const leaves = await response.json();
-        const currentDate = new Date();
-        
-        // Filter out expired leaves
-        const validLeaves = leaves.filter(leave => {
-            const endDate = new Date(leave.endDate);
-            return endDate >= currentDate;
-        });
+  try {
+    const response = await fetch("/leaves", { credentials: "include" });
+    const leaves = await response.json();
+    const currentDate = new Date();
 
-        // Auto-reject expired leaves (optional - if backend doesn't handle)
-        const expiredLeaves = leaves.filter(leave => {
-            const endDate = new Date(leave.endDate);
-            return endDate < currentDate;
-        });
+    // Filter out expired leaves
+    const validLeaves = leaves.filter((leave) => {
+      const endDate = new Date(leave.endDate);
+      return endDate >= currentDate;
+    });
 
-        // Optional: Update status for expired leaves
-        await Promise.all(expiredLeaves.map(leave => 
-            fetch(`/leaves/${leave.id}/REJECTED`, { method: 'PUT' })
-        ));
+    // Auto-reject expired leaves
+    const expiredLeaves = leaves.filter((leave) => {
+      const endDate = new Date(leave.endDate);
+      return endDate < currentDate;
+    });
+    await Promise.all(
+      expiredLeaves.map((leave) =>
+        fetch(`/leaves/${leave.id}/REJECTED`, { method: "PUT" })
+      )
+    );
 
-        renderLeaves(validLeaves);
-    } catch (error) {
-        console.error("Error loading leaves:", error);
-    }
+    renderLeaves(validLeaves);
+  } catch (error) {
+    console.error("Error loading leaves:", error);
+  }
 }
 
 async function searchLeaves() {
-    const email = document.getElementById("searchEmail").value;
-    if (!email) return loadLeaves();
+  const email = document.getElementById("searchEmail").value;
+  if (!email) return loadLeaves();
 
-    try {
-        const employeesResponse = await fetch("/employees", { credentials: "include" });
-        const employees = await employeesResponse.json();
-        const employee = employees.find(e => e.email === email);
-        
-        if (!employee) {
-            alert("Employee not found");
-            return;
-        }
+  try {
+    const employeesResponse = await fetch("/employees", {
+      credentials: "include",
+    });
+    const employees = await employeesResponse.json();
+    const employee = employees.find((e) => e.email === email);
 
-        const leavesResponse = await fetch(`/leaves/employee/${employee.id}`, { 
-            credentials: "include" 
-        });
-        const leaves = await leavesResponse.json();
-        renderLeaves(leaves);
-    } catch (error) {
-        console.error("Search error:", error);
+    if (!employee) {
+      alert("Employee not found");
+      return;
     }
+
+    const leavesResponse = await fetch(`/leaves/employee/${employee.id}`, {
+      credentials: "include",
+    });
+    const leaves = await leavesResponse.json();
+    renderLeaves(leaves);
+  } catch (error) {
+    console.error("Search error:", error);
+  }
 }
 
 function renderLeaves(leaves) {
-    const container = document.getElementById("leavesList");
-    container.innerHTML = "";
+  const container = document.getElementById("leavesList");
+  container.innerHTML = "";
 
-    if (leaves.length === 0) {
-        container.innerHTML = "<p>No leave requests found</p>";
-        return;
-    }
+  if (leaves.length === 0) {
+    container.innerHTML = "<p class='text-gray-400'>No leave requests found</p>";
+    return;
+  }
 
-    leaves.forEach(leave => {
-        const div = document.createElement("div");
-        div.className = "bg-white p-4 rounded-lg shadow mb-4";
-        div.innerHTML = `
-            <div class="flex justify-between items-center">
-                <div>
-                    <p><strong>Employee:</strong> ${leave.employee.name}</p>
-                    <p>${formatDate(leave.startDate)} - ${formatDate(leave.endDate)}</p>
-                    <span class="status-badge ${getStatusClass(leave.status)}">
-                        ${leave.status}
-                    </span>
-                </div>
-                ${leave.status === "PENDING" ? `
-                <div>
-                    <span class="action-btn text-green-500" 
-                          onclick="updateLeaveStatus('${leave.id}', 'APPROVED')">✓</span>
-                    <span class="action-btn text-red-500" 
-                          onclick="updateLeaveStatus('${leave.id}', 'REJECTED')">✗</span>
-                </div>
-                ` : ''}
-            </div>
-        `;
-        container.appendChild(div);
-    });
+  leaves.forEach((leave) => {
+    const div = document.createElement("div");
+    div.className = "bg-[#2c3e50] p-4 rounded-lg shadow mb-4 text-white";
+
+    div.innerHTML = `
+      <div class="flex justify-between items-start gap-4 flex-wrap">
+        <div>
+          <p class="text-lg font-semibold text-white"><strong>Employee:</strong> ${leave.employee.name}</p>
+          <p class="text-gray-300">${formatDate(leave.startDate)} - ${formatDate(leave.endDate)}</p>
+          <span class="inline-block mt-2 px-2 py-1 rounded text-sm font-medium ${getStatusClass(leave.status)}">
+            ${leave.status}
+          </span>
+        </div>
+
+        ${
+          leave.status === "PENDING"
+            ? `
+          <div class="flex gap-3 mt-2 sm:mt-0">
+            <button onclick="updateLeaveStatus('${leave.id}', 'APPROVED')" 
+              class="text-green-400 hover:text-green-300 text-xl font-bold">
+              ✓
+            </button>
+            <button onclick="updateLeaveStatus('${leave.id}', 'REJECTED')" 
+              class="text-red-400 hover:text-red-300 text-xl font-bold">
+              ✗
+            </button>
+          </div>
+          `
+            : ""
+        }
+      </div>
+    `;
+
+    container.appendChild(div);
+  });
 }
 
+
 async function updateLeaveStatus(leaveId, status) {
-    try {
-        await fetch(`/leaves/${leaveId}/${status}`, {
-            method: "PUT",
-            credentials: "include"
-        });
-        loadLeaves();
-    } catch (error) {
-        console.error("Status update error:", error);
-    }
+  try {
+    await fetch(`/leaves/${leaveId}/${status}`, {
+      method: "PUT",
+      credentials: "include",
+    });
+    loadLeaves();
+  } catch (error) {
+    console.error("Status update error:", error);
+  }
 }
 
 // Helpers
 function formatDate(dateString) {
-    return new Date(dateString).toLocaleDateString();
+  return new Date(dateString).toLocaleDateString();
 }
 
 function getStatusClass(status) {
-    const classes = {
-        APPROVED: "bg-green-100 text-green-800",
-        PENDING: "bg-yellow-100 text-yellow-800",
-        REJECTED: "bg-red-100 text-red-800"
-    };
-    return classes[status] || "bg-gray-100 text-gray-800";
+  const classes = {
+    APPROVED: "bg-green-800 text-green-100",
+    PENDING: "bg-yellow-700 text-yellow-100",
+    REJECTED: "bg-red-800 text-red-100",
+  };
+  return classes[status] || "bg-gray-700 text-gray-100";
 }
 
+
 function logout() {
-    fetch("/auth/logout", { 
-        method: "POST",
-        credentials: "include"
-    }).then(() => {
-        window.location.href = "index.html";
-    });
+  fetch("/auth/logout", {
+    method: "POST",
+    credentials: "include",
+  }).then(() => {
+    window.location.href = "index.html";
+  });
 }
