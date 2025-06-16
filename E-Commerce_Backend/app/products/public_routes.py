@@ -4,6 +4,7 @@ from typing import List, Optional
 from app.core.database import SessionLocal
 from app.products.models import Product
 from app.products.schemas import ProductRead
+from app.utils.logging import logger 
 
 router = APIRouter(
     prefix="/products",
@@ -57,6 +58,7 @@ def search_products(
     products = db.query(Product).filter(
         (Product.name.ilike(keyword_pattern)) | (Product.description.ilike(keyword_pattern))
     ).all()
+    logger.info(f"Product search performed with keyword='{keyword}'. {len(products)} results returned.")
     return products
 
 @router.get("/{product_id}", response_model=ProductRead)
@@ -66,5 +68,7 @@ def get_product_detail(
 ):
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
+        logger.warning(f"Product detail view failed for product_id={product_id}: Not found.")
         raise HTTPException(status_code=404, detail="Product not found")
+    logger.info(f"Product detail viewed for product_id={product_id} ('{product.name}')")
     return product

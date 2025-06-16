@@ -15,3 +15,21 @@ def hash_password(password: str):
     return pwd_context.hash(password)
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
+
+def create_reset_token(email: str):
+    expire = datetime.utcnow() + timedelta(hours=1)
+    payload = {
+        "sub": email,
+        "exp": expire,
+        "scope": "reset_password"
+    }
+    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.algorithm)
+
+def verify_reset_token(token: str):
+    try:
+        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.algorithm])
+        if payload.get("scope") != "reset_password":
+            return None
+        return payload.get("sub")
+    except Exception:
+        return None
