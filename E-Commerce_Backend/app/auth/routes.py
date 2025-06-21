@@ -3,7 +3,7 @@ from app.utils.logging import logger
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.auth.models import User, UserRole
-from app.auth.schemas import ForgotPasswordRequest, ResetPasswordRequest, UserCreate, UserRead, UserLogin
+from app.auth.schemas import ForgotPasswordRequest, ResetPasswordRequest, SuccessMessagge, UserCreate, UserRead, UserLogin
 from app.utils.utils import create_reset_token, hash_password, validate_email_format, verify_password, verify_reset_token, create_access_token
 
 router = APIRouter(
@@ -18,7 +18,7 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/signup", response_model=UserRead)
+@router.post("/signup", response_model = SuccessMessagge)
 def signup(user: UserCreate, db: Session = Depends(get_db)):  #user represents incoming data
     validate_email_format(user.email)
     logger.info(f"Signup attempt for email: {user.email}")
@@ -39,7 +39,7 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):  #user represents i
     db.commit()
     db.refresh(user_obj)
     logger.info(f"Signup success for email: {user.email}")
-    return user_obj
+    return {"message" : "Sign-up Succesfull!"}
 
 @router.post("/signin")
 def login(user: UserLogin, db: Session = Depends(get_db)):   
@@ -66,7 +66,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         "token_type": "bearer"
     }
 
-@router.post("/forgot-password")
+@router.post("/forgot-password", response_model = SuccessMessagge)
 def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
     logger.info(f"Forgot password requested for email: {request.email}")
     user = db.query(User).filter(User.email == request.email).first()
@@ -78,18 +78,28 @@ def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db
         logger.info(f"Password reset requested for non-existing email: {request.email}")
     return {"message": "If the email exists, a reset link has been sent."}
 
-@router.post("/reset-password")
+@router.post("/reset-password", response_model=SuccessMessagge)
 def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
     logger.info(f"Reset password attempt using token: {request.token}")
+    
     email = verify_reset_token(request.token)
     if not email:
-        logger.info(f"Password reset failed: Invalid or expired token used.")
+        logger.info("Password reset failed: Invalid or expired token.")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")
+
     user = db.query(User).filter(User.email == email).first()
     if not user:
         logger.info(f"Password reset failed: User with email {email} not found.")
         raise HTTPException(status_code=404, detail="User not found")
+    
+    if verify_password(request.new_password, user.hashed_password):
+        logger.info(f"Password reset failed: New password matches old one for user {email}.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please create a new password different from the previous one."
+        )
+
     user.hashed_password = hash_password(request.new_password)
     db.commit()
-    logger.info(f"Password reset success for email: {email}")
+    logger.info(f"Password reset successful for email: {email}")
     return {"message": "Password reset successful"}
