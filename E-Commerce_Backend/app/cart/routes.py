@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.cart.models import Cart
 from app.cart.schemas import CartCreate, CartRead
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import get_current_user, require_role
 from app.core.database import SessionLocal
 from app.products.models import Product
 from app.auth.models import User
@@ -22,10 +22,11 @@ def get_db():
         db.close()
 
 @router.post("/", response_model=CartRead)
-def add_to_cart(
+def add_to_cart( 
     item: CartCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user), # user specific
+     _: dict = Depends(require_role("user")) 
 ):
     product = db.query(Product).filter(Product.id == item.product_id).first()
     if not product:
@@ -69,11 +70,11 @@ def add_to_cart(
     db.refresh(cart_item)
     return cart_item
 
-
 @router.get("/", response_model=List[CartRead])
 def view_cart(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+     _: dict = Depends(require_role("user")) 
 ):
     cart = db.query(Cart).filter(Cart.user_id == current_user.id).all()
     logger.info(f"Cart viewed by user {current_user.email}")
@@ -100,7 +101,9 @@ def update_cart_item(
 def remove_from_cart(
     cart_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+     _: dict = Depends(require_role("user")) 
+     
 ):
     cart_item = db.query(Cart).filter(Cart.id == cart_id, Cart.user_id == current_user.id).first()
     if not cart_item:

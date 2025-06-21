@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.auth.models import User, UserRole
 from app.auth.schemas import ForgotPasswordRequest, ResetPasswordRequest, UserCreate, UserRead, UserLogin
-from app.utils.utils import create_reset_token, hash_password, verify_password, verify_reset_token, create_access_token
+from app.utils.utils import create_reset_token, hash_password, validate_email_format, verify_password, verify_reset_token, create_access_token
 
 router = APIRouter(
     prefix="/auth",
@@ -14,14 +14,15 @@ router = APIRouter(
 def get_db():
     db = SessionLocal()
     try:
-        yield db
+        yield db  # hand over session to route
     finally:
         db.close()
 
 @router.post("/signup", response_model=UserRead)
-def signup(user: UserCreate, db: Session = Depends(get_db)):
+def signup(user: UserCreate, db: Session = Depends(get_db)):  #user represents incoming data
+    validate_email_format(user.email)
     logger.info(f"Signup attempt for email: {user.email}")
-    existing_user = db.query(User).filter(User.email == user.email).first()
+    existing_user = db.query(User).filter(User.email == user.email).first() # return first result found
     if existing_user:
         logger.info(f"Signup failed for email: {user.email} (already registered)")
         raise HTTPException(
@@ -41,7 +42,7 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
     return user_obj
 
 @router.post("/signin")
-def login(user: UserLogin, db: Session = Depends(get_db)):
+def login(user: UserLogin, db: Session = Depends(get_db)):   
     existing_user = db.query(User).filter(User.email == user.email).first()
     if not existing_user:
         logger.info(f"Login failed for email: {user.email} - user not found")
@@ -69,11 +70,10 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
     logger.info(f"Forgot password requested for email: {request.email}")
     user = db.query(User).filter(User.email == request.email).first()
-    # Always return a generic message for security
     if user:
         token = create_reset_token(user.email)
         logger.info(f"Password reset token generated for email: {user.email}")
-        print(f"Reset Link (send via email in real app): http://localhost:8000/auth/reset-password?token={token}")
+        print(f"Reset Link (send via email in real app): http://localhost:127.0.0.1/auth/reset-password?token={token}")
     else:
         logger.info(f"Password reset requested for non-existing email: {request.email}")
     return {"message": "If the email exists, a reset link has been sent."}

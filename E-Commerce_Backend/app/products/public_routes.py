@@ -22,9 +22,7 @@ def get_db():
 def get_products(
     db: Session = Depends(get_db),
     category: Optional[str] = Query(None),
-    min_price: Optional[float] = Query(None, ge=0),
-    max_price: Optional[float] = Query(None, ge=0),
-    sort_by: Optional[str] = Query(None, description="Field to sort by: price, name, etc."),
+    sort_by: Optional[str] = Query(None, description="Sort by 'name' or '-name'"),
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100)
 ):
@@ -32,16 +30,9 @@ def get_products(
 
     if category:
         query = query.filter(Product.category == category)
-    if min_price is not None:
-        query = query.filter(Product.price >= min_price)
-    if max_price is not None:
-        query = query.filter(Product.price <= max_price)
+
     if sort_by:
-        if sort_by == "price":
-            query = query.order_by(Product.price)
-        elif sort_by == "-price":
-            query = query.order_by(Product.price.desc())
-        elif sort_by == "name":
+        if sort_by == "name":
             query = query.order_by(Product.name)
         elif sort_by == "-name":
             query = query.order_by(Product.name.desc())

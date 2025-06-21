@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.auth.models import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin") # gets token from authorization header
 
 def get_jwt_user(token: str = Depends(oauth2_scheme)):
     try:
@@ -19,7 +19,6 @@ def get_jwt_user(token: str = Depends(oauth2_scheme)):
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
 
-# Dependency 2: Parse JWT, then load user from DB (for cart, orders, etc.)
 def get_db():
     db = SessionLocal()
     try:
@@ -41,7 +40,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     user = db.query(User).filter(User.email == user_email).first()
     if user is None:
         raise credentials_exception
-    return user  # SQLAlchemy model instance
+    return user  
 
 def require_role(required_role: str):
     def role_dependency(user=Depends(get_jwt_user)):

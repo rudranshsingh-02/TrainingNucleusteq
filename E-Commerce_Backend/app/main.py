@@ -22,6 +22,6 @@ app.include_router(order_router)
 app.include_router(checkout_router)
 app.include_router(payments_router)
 
-@app.get("/")
+@app.get("/") # decorator 
 def read_root():
     return {"status": "OK", "message": "E-commerce Backend running"}

@@ -18,7 +18,7 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/", response_model=ProductRead, dependencies=[Depends(require_role("admin"))])
+@router.post("/", response_model=ProductRead, dependencies=[Depends(require_role("admin"))]) #not user specific that's why used get_jwt_user
 def create_product(product: ProductCreate, db: Session = Depends(get_db)):
     existing_product = db.query(Product).filter(
         Product.name == product.name,

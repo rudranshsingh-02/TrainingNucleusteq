@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings
 from pydantic import Field
 
 class Settings(BaseSettings):
-    database_url: str = Field(..., env='DATABASE_URL')
+    database_url: str = Field(..., env='DATABASE_URL') 
     jwt_secret_key: str = Field(..., env='JWT_SECRET_KEY')
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30

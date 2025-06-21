@@ -13,7 +13,7 @@ class UserRead(BaseModel):
     email: EmailStr
     role: str
 
-    model_config = ConfigDict(from_attributes=True) 
+    model_config = ConfigDict(from_attributes=True)  # convert sqlalchemy object to dictonary.
 
 class UserLogin(BaseModel):
     email: EmailStr

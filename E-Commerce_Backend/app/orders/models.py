@@ -17,7 +17,8 @@ class Order(Base):
     status = Column(Enum(OrderStatus), default=OrderStatus.paid)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    items = relationship("OrderItem", back_populates="order")
+    items = relationship("OrderItem", back_populates="order")  
+    # An Order can have many OrderItems, replaces manual query writing to find all orderitems for one order
 
 class OrderItem(Base):
     __tablename__ = "order_items"
@@ -27,4 +28,4 @@ class OrderItem(Base):
     quantity = Column(Integer, nullable=False)
     price_at_purchase = Column(Float, nullable=False)
 
-    order = relationship("Order", back_populates="items")
+    order = relationship("Order", back_populates="items") 
